@@ -83,7 +83,7 @@ namespace TcpServer
                             {
                                 string id = parts[0];
                                 string qty = parts[1];
-                                Log($"→ Món {id}, SL {qty}");
+                                Log($"Món {id}, SL {qty}");
                             }
                         }
                     }
