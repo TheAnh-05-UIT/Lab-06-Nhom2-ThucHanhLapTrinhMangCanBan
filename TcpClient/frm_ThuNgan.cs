@@ -1,18 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.Net.Sockets;
-using System.IO;
-using System.Text.Json;
-using System.Threading;
-
-
 
 namespace TcpClient
 {
@@ -21,7 +13,9 @@ namespace TcpClient
         private System.Net.Sockets.TcpClient tcp;
         private StreamReader reader;
         private StreamWriter writer;
-        private List<OrderItem> currentBillDetails = new List<OrderItem>(); // Lưu chi tiết để xuất file
+
+        private List<OrderItem> currentBillDetails = new List<OrderItem>();
+
         public class OrderItem
         {
             public int SoBan { get; set; }
@@ -30,20 +24,16 @@ namespace TcpClient
             public double ThanhTien { get; set; }
         }
 
-        public class PayResponse
-        {
-            public string Status { get; set; }
-            public double Total { get; set; }
-            public List<OrderItem> Details { get; set; }
-        }
         public frm_ThuNgan()
         {
             InitializeComponent();
+            frm_ThuNgan_Load(this, null);
         }
 
         private async void frm_ThuNgan_Load(object sender, EventArgs e)
         {
             await ConnectServer("127.0.0.1", 8080);
+            await RefreshOrders();
         }
 
         private async Task ConnectServer(string host, int port)
@@ -61,29 +51,106 @@ namespace TcpClient
                 MessageBox.Show("Lỗi kết nối: " + ex.Message);
             }
         }
+
+        private async Task RefreshOrders()
+        {
+            if (writer == null) return;
+
+            await writer.WriteLineAsync("GET_ORDERS");
+            var all = new List<OrderItem>();
+            while (true)
+            {
+                string line = await reader.ReadLineAsync();
+                if (line == null) break;
+                line = line.Trim();
+                if (line.Equals("END", StringComparison.OrdinalIgnoreCase)) break;
+                if (line.Length == 0) continue;
+
+                var parts = line.Split(';');
+                if (parts.Length < 5) continue;
+
+                int soBan = int.TryParse(parts[0], out var b) ? b : 0;
+                string ten = parts[2];
+                int sl = int.TryParse(parts[3], out var q) ? q : 0;
+                var moneyStr = parts[4].Replace(",", "").Replace(".", "");
+                double tt = double.TryParse(moneyStr, out var m) ? m : 0;
+
+                all.Add(new OrderItem { SoBan = soBan, TenMon = ten, SoLuong = sl, ThanhTien = tt });
+            }
+
+            dgvData.DataSource = all;
+        }
+
         private async void btnCharge_Click(object sender, EventArgs e)
         {
-            if (string.IsNullOrEmpty(txtSoban.Text)) return;
+            if (writer == null)
+            {
+                MessageBox.Show("Chưa kết nối server!");
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(txtSoban.Text) || !int.TryParse(txtSoban.Text, out int soBan))
+                return;
 
             try
             {
-                var request = new { action = "pay", data = int.Parse(txtSoban.Text) };
-                await writer.WriteLineAsync(JsonSerializer.Serialize(request));
-                string response = await reader.ReadLineAsync();
-                if (!string.IsNullOrEmpty(response))
-                {
-                    var result = JsonSerializer.Deserialize<PayResponse>(response);
-                    lblTongTien.Text = result.Total.ToString("N0") + " VNĐ";
-                    dgvData.DataSource = result.Details;
+                await writer.WriteLineAsync($"PAY {soBan}");
 
-                    currentBillDetails = result.Details;
+                string first = await reader.ReadLineAsync();
+                if (first == null)
+                {
+                    MessageBox.Show("Không nhận được phản hồi!");
+                    return;
                 }
+                if (first.StartsWith("FAIL", StringComparison.OrdinalIgnoreCase))
+                {
+                    MessageBox.Show("Tính tiền thất bại: " + first);
+                    return;
+                }
+                double total = 0;
+                if (first.StartsWith("TOTAL2 ", StringComparison.OrdinalIgnoreCase))
+                {
+                    double.TryParse(first.Substring(7).Trim(), out total);
+                }
+                else if (first.StartsWith("TOTAL ", StringComparison.OrdinalIgnoreCase))
+                {
+                    string t2 = await reader.ReadLineAsync();
+                    if (t2 != null && t2.StartsWith("TOTAL2 ", StringComparison.OrdinalIgnoreCase))
+                        double.TryParse(t2.Substring(7).Trim(), out total);
+                }
+
+                var details = new List<OrderItem>();
+                while (true)
+                {
+                    string line = await reader.ReadLineAsync();
+                    if (line == null) break;
+                    line = line.Trim();
+                    if (line.Equals("END", StringComparison.OrdinalIgnoreCase)) break;
+                    if (line.Length == 0) continue;
+                    var parts = line.Split(';');
+                    if (parts.Length < 4) continue;
+
+                    int sb = int.TryParse(parts[0], out var b) ? b : soBan;
+                    string ten = parts[1];
+                    int sl = int.TryParse(parts[2], out var q) ? q : 0;
+
+                    var moneyStr = parts[3].Replace(",", "").Replace(".", "");
+                    double tt = double.TryParse(moneyStr, out var m) ? m : 0;
+
+                    details.Add(new OrderItem { SoBan = sb, TenMon = ten, SoLuong = sl, ThanhTien = tt });
+                }
+
+                lblTongTien.Text = total.ToString("N0") + " VNĐ";
+                dgvData.DataSource = details;
+                currentBillDetails = details;
+                await RefreshOrders();
             }
             catch (Exception ex)
             {
                 MessageBox.Show("Lỗi khi tính tiền: " + ex.Message);
             }
         }
+
         private void btnXuat_Click(object sender, EventArgs e)
         {
             if (currentBillDetails == null || currentBillDetails.Count == 0)
@@ -104,12 +171,10 @@ namespace TcpClient
                     sw.WriteLine($"Bàn số: {soBan}");
                     sw.WriteLine($"Ngày: {DateTime.Now:dd/MM/yyyy HH:mm}");
                     sw.WriteLine("--------------------------------");
-                    sw.WriteLine("{0,-15} {1,-5} {2,-10}", "Tên món", "SL", "T.Tiền");
+                    sw.WriteLine("{0,-20} {1,-5} {2,-10}", "Tên món", "SL", "T.Tiền");
 
                     foreach (var item in currentBillDetails)
-                    {
-                        sw.WriteLine("{0,-15} {1,-5} {2,-10:N0}", item.TenMon, item.SoLuong, item.ThanhTien);
-                    }
+                        sw.WriteLine("{0,-20} {1,-5} {2,-10:N0}", item.TenMon, item.SoLuong, item.ThanhTien);
 
                     sw.WriteLine("--------------------------------");
                     sw.WriteLine($"TỔNG CỘNG: {lblTongTien.Text}");

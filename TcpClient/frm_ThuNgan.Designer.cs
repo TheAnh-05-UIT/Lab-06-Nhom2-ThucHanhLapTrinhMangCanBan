@@ -29,8 +29,6 @@
         private void InitializeComponent()
         {
             this.dgvData = new System.Windows.Forms.DataGridView();
-            this.colBan = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.colMonAn = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.lblTilte = new System.Windows.Forms.Label();
             this.txtSoban = new System.Windows.Forms.TextBox();
             this.btnCharge = new System.Windows.Forms.Button();
@@ -42,25 +40,12 @@
             // dgvData
             // 
             this.dgvData.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            this.dgvData.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
-            this.colBan,
-            this.colMonAn});
             this.dgvData.Location = new System.Drawing.Point(13, 67);
             this.dgvData.Margin = new System.Windows.Forms.Padding(4);
             this.dgvData.Name = "dgvData";
+            this.dgvData.RowHeadersWidth = 51;
             this.dgvData.Size = new System.Drawing.Size(599, 334);
             this.dgvData.TabIndex = 0;
-            // 
-            // colBan
-            // 
-            this.colBan.HeaderText = "Bàn";
-            this.colBan.Name = "colBan";
-            // 
-            // colMonAn
-            // 
-            this.colMonAn.HeaderText = "Món ăn";
-            this.colMonAn.Name = "colMonAn";
-            this.colMonAn.Width = 500;
             // 
             // lblTilte
             // 
@@ -69,7 +54,7 @@
             this.lblTilte.Location = new System.Drawing.Point(36, 26);
             this.lblTilte.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.lblTilte.Name = "lblTilte";
-            this.lblTilte.Size = new System.Drawing.Size(142, 32);
+            this.lblTilte.Size = new System.Drawing.Size(179, 41);
             this.lblTilte.TabIndex = 1;
             this.lblTilte.Text = "THU NGÂN";
             // 
@@ -77,7 +62,7 @@
             // 
             this.txtSoban.Location = new System.Drawing.Point(741, 87);
             this.txtSoban.Name = "txtSoban";
-            this.txtSoban.Size = new System.Drawing.Size(100, 25);
+            this.txtSoban.Size = new System.Drawing.Size(100, 29);
             this.txtSoban.TabIndex = 2;
             // 
             // btnCharge
@@ -97,7 +82,7 @@
             this.lblTongTien.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.lblTongTien.Location = new System.Drawing.Point(764, 226);
             this.lblTongTien.Name = "lblTongTien";
-            this.lblTongTien.Size = new System.Drawing.Size(130, 21);
+            this.lblTongTien.Size = new System.Drawing.Size(165, 28);
             this.lblTongTien.TabIndex = 4;
             this.lblTongTien.Text = "Hiển thị tổng tiền";
             // 
@@ -114,7 +99,7 @@
             // 
             // frm_ThuNgan
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 17F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 21F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1036, 414);
             this.Controls.Add(this.btnXuat);
@@ -139,8 +124,6 @@
         private System.Windows.Forms.Label lblTilte;
         private System.Windows.Forms.TextBox txtSoban;
         private System.Windows.Forms.Button btnCharge;
-        private System.Windows.Forms.DataGridViewTextBoxColumn colBan;
-        private System.Windows.Forms.DataGridViewTextBoxColumn colMonAn;
         private System.Windows.Forms.Label lblTongTien;
         private System.Windows.Forms.Button btnXuat;
     }
