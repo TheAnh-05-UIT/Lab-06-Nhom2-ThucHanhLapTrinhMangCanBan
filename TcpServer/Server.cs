@@ -105,6 +105,24 @@ namespace TcpServer
                         await writer.WriteLineAsync(JsonSerializer.Serialize(response));
 
                         allOrders.RemoveAll(o => o.SoBan == soBan);
+//=======
+//                    Log("Client: " + line);
+//                    if (line.StartsWith("Order"))
+//                    {
+//                        Log("Nhận Order: " + line);
+//                        string detail = await reader.ReadLineAsync();
+//                        if (detail != null)
+//                        {
+//                            Log("Chi tiết: " + detail);
+//                            var parts = detail.Split(' ');
+//                            if (parts.Length == 2)
+//                            {
+//                                string id = parts[0];
+//                                string qty = parts[1];
+//                                Log($"Món {id}, SL {qty}");
+//                            }
+//                        }
+//>>>>>>> 361338c498fc7ed24027f088fa54fbb8006370d1
                     }
                 }
             }

@@ -90,6 +90,31 @@ namespace TcpClient
                 MessageBox.Show("Lỗi nhận dữ liệu từ server: " + ex.Message);
             }
         }
+        private async void btn_PlaceOrder_Click(object sender, EventArgs e)
+        {
+            foreach (DataGridViewRow row in dgv_Thucdon.Rows)
+            {
+                int qty = Convert.ToInt32(row.Cells["Quantity"].Value);
+                if (qty > 0)
+                {
+                    var order = new
+                    {
+                        action = "ORDER",
+                        data = new
+                        {
+                            //SoBan = int.Parse(txtSoBan.Text),
+                            TenMon = row.Cells["Names"].Value.ToString(),
+                            SoLuong = qty,
+                            ThanhTien = qty * double.Parse(row.Cells["Price"].Value.ToString())
+                        }
+                    };
+                    await writer.WriteLineAsync(JsonSerializer.Serialize(order));
+                }
+            }
+            MessageBox.Show("Đặt thành công!");
+        
+    }
+
         public class MenuItem
         {
             public string ID { get; set; }
@@ -101,6 +126,7 @@ namespace TcpClient
         {
             _ = ConnectServer("127.0.0.1", 8080);
         }
+
     }
 }
 

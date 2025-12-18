@@ -59,6 +59,7 @@
             this.btn_PlaceOrder.TabIndex = 1;
             this.btn_PlaceOrder.Text = "Place Order ";
             this.btn_PlaceOrder.UseVisualStyleBackColor = true;
+            this.btn_PlaceOrder.Click += new System.EventHandler(this.btn_PlaceOrder_Click);
             // 
             // btn_Connect
             // 

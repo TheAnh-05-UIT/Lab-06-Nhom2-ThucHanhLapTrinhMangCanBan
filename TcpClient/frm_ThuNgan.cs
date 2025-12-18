@@ -39,6 +39,7 @@ namespace TcpClient
         public frm_ThuNgan()
         {
             InitializeComponent();
+            frm_ThuNgan_Load(this, EventArgs.Empty);
         }
 
         private async void frm_ThuNgan_Load(object sender, EventArgs e)
@@ -74,7 +75,6 @@ namespace TcpClient
                 {
                     var result = JsonSerializer.Deserialize<PayResponse>(response);
                     lblTongTien.Text = result.Total.ToString("N0") + " VNĐ";
-                   // dgvData.DataSource = result.Details;
 
                     currentBillDetails = result.Details;
                 }
