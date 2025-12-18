@@ -29,12 +29,13 @@
         private void InitializeComponent()
         {
             this.dgvData = new System.Windows.Forms.DataGridView();
+            this.colBan = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.colMonAn = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.lblTilte = new System.Windows.Forms.Label();
             this.txtSoban = new System.Windows.Forms.TextBox();
             this.btnCharge = new System.Windows.Forms.Button();
-            this.colBan = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.colMonAn = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.lblTongTien = new System.Windows.Forms.Label();
+            this.btnXuat = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.dgvData)).BeginInit();
             this.SuspendLayout();
             // 
@@ -45,10 +46,21 @@
             this.colBan,
             this.colMonAn});
             this.dgvData.Location = new System.Drawing.Point(13, 67);
-            this.dgvData.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.dgvData.Margin = new System.Windows.Forms.Padding(4);
             this.dgvData.Name = "dgvData";
             this.dgvData.Size = new System.Drawing.Size(599, 334);
             this.dgvData.TabIndex = 0;
+            // 
+            // colBan
+            // 
+            this.colBan.HeaderText = "Bàn";
+            this.colBan.Name = "colBan";
+            // 
+            // colMonAn
+            // 
+            this.colMonAn.HeaderText = "Món ăn";
+            this.colMonAn.Name = "colMonAn";
+            this.colMonAn.Width = 500;
             // 
             // lblTilte
             // 
@@ -77,17 +89,7 @@
             this.btnCharge.TabIndex = 3;
             this.btnCharge.Text = "Thanh toán";
             this.btnCharge.UseVisualStyleBackColor = true;
-            // 
-            // colBan
-            // 
-            this.colBan.HeaderText = "Bàn";
-            this.colBan.Name = "colBan";
-            // 
-            // colMonAn
-            // 
-            this.colMonAn.HeaderText = "Món ăn";
-            this.colMonAn.Name = "colMonAn";
-            this.colMonAn.Width = 500;
+            this.btnCharge.Click += new System.EventHandler(this.btnCharge_Click);
             // 
             // lblTongTien
             // 
@@ -99,18 +101,30 @@
             this.lblTongTien.TabIndex = 4;
             this.lblTongTien.Text = "Hiển thị tổng tiền";
             // 
+            // btnXuat
+            // 
+            this.btnXuat.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnXuat.Location = new System.Drawing.Point(861, 118);
+            this.btnXuat.Name = "btnXuat";
+            this.btnXuat.Size = new System.Drawing.Size(114, 23);
+            this.btnXuat.TabIndex = 5;
+            this.btnXuat.Text = "Xuất";
+            this.btnXuat.UseVisualStyleBackColor = true;
+            this.btnXuat.Click += new System.EventHandler(this.btnXuat_Click);
+            // 
             // frm_ThuNgan
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 17F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1036, 414);
+            this.Controls.Add(this.btnXuat);
             this.Controls.Add(this.lblTongTien);
             this.Controls.Add(this.btnCharge);
             this.Controls.Add(this.txtSoban);
             this.Controls.Add(this.lblTilte);
             this.Controls.Add(this.dgvData);
             this.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.Margin = new System.Windows.Forms.Padding(4);
             this.Name = "frm_ThuNgan";
             this.Text = "frm_ThuNgan";
             ((System.ComponentModel.ISupportInitialize)(this.dgvData)).EndInit();
@@ -128,5 +142,6 @@
         private System.Windows.Forms.DataGridViewTextBoxColumn colBan;
         private System.Windows.Forms.DataGridViewTextBoxColumn colMonAn;
         private System.Windows.Forms.Label lblTongTien;
+        private System.Windows.Forms.Button btnXuat;
     }
 }
