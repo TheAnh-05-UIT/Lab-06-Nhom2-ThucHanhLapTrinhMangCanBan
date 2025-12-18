@@ -8,6 +8,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -26,122 +27,91 @@ namespace TcpServer
         private bool stopServer = true;
         private readonly int _serverPort = 8080;
         private delegate void SafeCallDelegate(string text);
-        public void UpdateHistorySafeCall(string text)
+        private void Log(string msg)
         {
-            if (stopServer)
-            {
-                return;
-            }
-            if (historyTextBox.InvokeRequired)
-            {
-                var d = new SafeCallDelegate(UpdateHistorySafeCall);
-                historyTextBox.Invoke(d, new object[] { text });
-            }
-            else
-            {
-                historyTextBox.AppendText(text + Environment.NewLine);
-            }
+            if (InvokeRequired) { Invoke(new Action(() => Log(msg))); return; }
+            historyTextBox.AppendText($"[{DateTime.Now:T}] {msg}\r\n");
+            historyTextBox.SelectionStart = historyTextBox.Text.Length;
+            historyTextBox.ScrollToCaret();
         }
 
         public string ReadMenuFromFile()
         {
-            string menu = "";
+            string filePath = "menu.txt";
+            if (!File.Exists(filePath))
+            {
+                Log("File menu.txt không tồn tại.");
+                return string.Empty;
+            }
             try
             {
-                using (StreamReader sr = new StreamReader("menu.txt"))
-                {
-                    string line;
-                    while ((line = sr.ReadLine()) != null)
-                    {
-                        menu += line + Environment.NewLine;
-                    }
-
-                }
+                return File.ReadAllText(filePath);
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                MessageBox.Show("Lỗi đọc file: " + e.Message);
+                Log("Lỗi đọc file menu.txt: " + ex.Message);
+                return string.Empty;
             }
-            return menu;
         }
         private void Server_Load(object sender, EventArgs e)
         {
             string menu = ReadMenuFromFile();
-            UpdateHistorySafeCall("Menu đã load");
-            UpdateHistorySafeCall(menu);
+            Log("Menu load xong:\n" + menu);
         }
-        public async Task Listen()
+        private async Task HandleClient(TcpClient client)
         {
+            var stream = client.GetStream();
+            var reader = new StreamReader(stream, Encoding.UTF8);
+            var writer = new StreamWriter(stream, Encoding.UTF8) { AutoFlush = true };
+            string menu = ReadMenuFromFile();
+            await writer.WriteLineAsync(JsonSerializer.Serialize(new { Type = "Menu", Data = menu }));
             try
             {
-                tcpListener = new TcpListener(IPAddress.Any, _serverPort);
-                tcpListener.Start();
-                statusLabel.Text = @"Status: Server is listening on port " + _serverPort;
-                Server_Load(this, null);
-                while (!stopServer)
+                while (client.Connected)
                 {
-                    //TcpClient tcpClient = await tcpListener.AcceptTcpClientAsync();
-                    //var ns = tcpClient.GetStream();
-                    ////var sReader = new StreamReader(ns, Encoding.UTF8);
-                    //// var sWriter = new StreamWriter(ns, Encoding.UTF8) { AutoFlush = true };
-                    //byte[] data = Encoding.UTF8.GetBytes();
-
-                    //string clientEndPoint = tcpClient.Client.RemoteEndPoint.ToString();
-                    //UpdateHistorySafeCall("Connected to client: " + clientEndPoint);
-                    //string menu = ReadMenuFromFile();
-                    //await sWriter.WriteAsync("" +menu);
-                    //NetworkStream stream = new NetworkStream();
-                    //byte[] buffer = new byte[1024];
-                    //TcpClient tcpClient = await tcpListener.AcceptTcpClientAsync();
-                    //stream = tcpClient.GetStream();
-                    //string clientEndPoint = tcpClient.Client.RemoteEndPoint.ToString();
-                    //UpdateHistorySafeCall("Connected to client: " + clientEndPoint);
-                    //int bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length);
-                    //string menu = "Customer" + ReadMenuFromFile();
-                    //UpdateHistorySafeCall(menu);
-                    //byte[] menuBytes = Encoding.UTF8.GetBytes(menu);
-                    //await stream.WriteAsync(menuBytes, 0, menuBytes.Length);
-                    //stream.Close();
-                    //tcpClient.Close();
-                    TcpClient tcpClient = await tcpListener.AcceptTcpClientAsync();
-                    _ = HandlerGetClient(tcpClient);
+                    string line = await reader.ReadLineAsync();
                 }
             }
-            catch (SocketException sockEx)
+            catch (Exception ex)
             {
-                MessageBox.Show(sockEx.Message);
+                Log("Lỗi client: " + ex.Message);
             }
         }
-        private async Task HandlerGetClient(TcpClient tcpClient)
-        {
-            using (tcpClient)
-            {
-                NetworkStream stream = new NetworkStream(tcpClient.Client);
-                string clientEndPoint = tcpClient.Client.RemoteEndPoint.ToString();
-                UpdateHistorySafeCall("Connected to client: " + clientEndPoint);
-                string menu = "Customer" + ReadMenuFromFile();
-                UpdateHistorySafeCall(menu);
-                byte[] menuBytes = Encoding.UTF8.GetBytes(menu);
-                await stream.WriteAsync(menuBytes, 0, menuBytes.Length);
-                stream.Close();
-            }
-        }
+
         private void listenButton_Click(object sender, EventArgs e)
         {
             if (stopServer)
             {
                 stopServer = false;
                 listenButton.Text = "Stop";
-                listenThread = new Thread(async () => await Listen());
+                listenThread = new Thread(async () =>
+                {
+                    tcpListener = new TcpListener(IPAddress.Any, _serverPort);
+                    tcpListener.Start();
+                    Log($"Server started on port {_serverPort}");
+                    while (!stopServer)
+                    {
+                        try
+                        {
+                            var client = await tcpListener.AcceptTcpClientAsync();
+                            Log("Client connected: " + client.Client.RemoteEndPoint.ToString());
+                            _ = HandleClient(client);
+                        }
+                        catch (Exception ex)
+                        {
+                            Log("Lỗi server: " + ex.Message);
+                        }
+                    }
+                    tcpListener.Stop();
+                    Log("Server stopped.");
+                });
+                listenThread.IsBackground = true;
                 listenThread.Start();
             }
             else
             {
                 stopServer = true;
                 listenButton.Text = "Listen";
-                tcpListener.Stop();
-                listenThread.Abort();
-                statusLabel.Text = @"Status: Server is stopped";
             }
         }
     }
