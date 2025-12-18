@@ -70,6 +70,23 @@ namespace TcpServer
                 while (client.Connected)
                 {
                     string line = await reader.ReadLineAsync();
+                    Log("Client: " + line);
+                    if (line.StartsWith("Order"))
+                    {
+                        Log("Nhận Order: " + line);
+                        string detail = await reader.ReadLineAsync();
+                        if (detail != null)
+                        {
+                            Log("Chi tiết: " + detail);
+                            var parts = detail.Split(' ');
+                            if (parts.Length == 2)
+                            {
+                                string id = parts[0];
+                                string qty = parts[1];
+                                Log($"→ Món {id}, SL {qty}");
+                            }
+                        }
+                    }
                 }
             }
             catch (Exception ex)
