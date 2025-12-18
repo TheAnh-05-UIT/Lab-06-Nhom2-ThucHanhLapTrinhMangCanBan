@@ -21,7 +21,7 @@ namespace TcpClient
         private System.Net.Sockets.TcpClient tcp;
         private StreamReader reader;
         private StreamWriter writer;
-        private List<OrderItem> currentBillDetails = new List<OrderItem>(); // Lưu chi tiết để xuất file
+        private List<OrderItem> currentBillDetails = new List<OrderItem>(); 
         public class OrderItem
         {
             public int SoBan { get; set; }
@@ -74,7 +74,7 @@ namespace TcpClient
                 {
                     var result = JsonSerializer.Deserialize<PayResponse>(response);
                     lblTongTien.Text = result.Total.ToString("N0") + " VNĐ";
-                    dgvData.DataSource = result.Details;
+                   // dgvData.DataSource = result.Details;
 
                     currentBillDetails = result.Details;
                 }
